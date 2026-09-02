@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CalendarDays, ChevronLeft } from 'lucide-react'
+import { CalendarDays, ChevronLeft, LocateFixed } from 'lucide-react'
 import { db } from './data/database'
 import { buildCalendarDays, type CalendarDay, type CalendarStatus } from './domain/calendar'
 import type { PersonalDate, YearExperiment } from './domain/types'
@@ -55,9 +55,23 @@ function dayLabel(day: CalendarDay): string {
 
 export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps) {
   const [filter, setFilter] = useState<CalendarFilter>('all')
+  const todayButtonRef = useRef<HTMLButtonElement>(null)
   const checkIns = useLiveQuery(() => db.dailyCheckIns.where('experimentId').equals(experiment.id).toArray(), [experiment.id])
   const days = buildCalendarDays(experiment.startDate, today, checkIns ?? [])
   const months = groupByMonth(days)
+  const hasToday = days.some((day) => day.date === today)
+
+  function revealToday(shouldFocus: boolean, behavior: ScrollBehavior) {
+    const button = todayButtonRef.current
+    if (!button) return
+    button.scrollIntoView({ behavior, block: 'center', inline: 'center' })
+    if (shouldFocus) button.focus({ preventScroll: true })
+  }
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => revealToday(false, 'auto'))
+    return () => window.cancelAnimationFrame(frame)
+  }, [today])
 
   function matchesFilter(day: CalendarDay): boolean {
     if (filter === 'all') return true
@@ -70,6 +84,7 @@ export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps
       <header className="calendar-header">
         <button className="icon-button" onClick={onBack} aria-label="Back to Today"><ChevronLeft aria-hidden="true" /></button>
         <div><p className="eyebrow">Your Year Experiment</p><h1>Calendar</h1></div>
+        <button className="calendar-today-button" type="button" aria-label="Jump to today" disabled={!hasToday} onClick={() => revealToday(true, 'smooth')}><LocateFixed aria-hidden="true" /><span>Today</span></button>
       </header>
       <main className="calendar-content">
         <section className="calendar-intro" aria-labelledby="calendar-title">
@@ -97,6 +112,7 @@ export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps
                   {monthDays.map((day) => (
                     <button
                       type="button"
+                      ref={day.date === today ? todayButtonRef : undefined}
                       key={day.date}
                       className={`calendar-day ${day.status} ${day.date === today ? 'today' : ''} ${!matchesFilter(day) ? 'filtered' : ''}`}
                       aria-label={dayLabel(day)}

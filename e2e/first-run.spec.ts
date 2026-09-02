@@ -138,6 +138,24 @@ test('opens historical check-ins from Calendar and keeps future days unavailable
   expect(runtimeErrors).toEqual([])
 })
 
+test('opens Calendar at today and can return focus to it', async ({ page }) => {
+  await page.goto('/')
+  const start = new Date()
+  start.setDate(start.getDate() - 120)
+  const startDate = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
+  await page.getByLabel('Start date').fill(startDate)
+  await page.getByRole('button', { name: 'Begin my year' }).click()
+  await page.getByRole('button', { name: 'Calendar', exact: true }).click()
+
+  const today = page.locator('.calendar-day.today')
+  await expect(today).toBeInViewport()
+
+  await page.evaluate(() => window.scrollTo({ top: 0 }))
+  await page.getByRole('button', { name: 'Jump to today' }).click()
+  await expect(today).toBeFocused()
+  await expect(today).toBeInViewport()
+})
+
 test('shows recorded trend observations without counting unknown days', async ({ page }) => {
   const runtimeErrors: string[] = []
   page.on('console', (message) => {
