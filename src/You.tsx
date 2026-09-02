@@ -73,7 +73,7 @@ export function RestoreControl({ compact = false }: { compact?: boolean }) {
       {pending && (
         <div className="restore-confirm" role="status">
           <ArchiveRestore aria-hidden="true" />
-          <div><strong>Backup ready to restore</strong><p>{pending.data.dailyCheckIns.length} check-ins · exported {pending.exportedAt.slice(0, 10)}</p></div>
+          <div><strong>Backup ready to restore</strong><p>{pending.data.dailyCheckIns.length} check-ins · {pending.data.projects.length} projects · {pending.data.lifeRules.length} life rules · exported {pending.exportedAt.slice(0, 10)}</p></div>
           <button type="button" className="primary-button" disabled={isRestoring} onClick={confirmRestore}>{isRestoring ? 'Restoring...' : 'Replace local data'}</button>
         </div>
       )}
@@ -128,7 +128,7 @@ export function You({ profile, experiment, theme, onThemeChange, onBack }: YouPr
           <section className="data-panel" aria-labelledby="csv-title">
             <div className="panel-heading"><FileSpreadsheet aria-hidden="true" /><div><p className="step-label">For analysis</p><h2 id="csv-title">Export a CSV</h2></div></div>
             <p>CSV files are convenient for spreadsheets. They are not backups and cannot be restored.</p>
-            <label className="select-field">Record type<select value={csvType} onChange={(event) => setCsvType(event.target.value as CsvRecordType)}><option value="daily-check-ins">Daily Check-Ins</option><option value="year-experiments">Year Experiment</option><option value="local-profiles">Local Profile</option></select></label>
+            <label className="select-field">Record type<select value={csvType} onChange={(event) => setCsvType(event.target.value as CsvRecordType)}><option value="daily-check-ins">Daily Check-Ins</option><option value="projects">Projects</option><option value="project-milestones">Project Milestones</option><option value="interests">Things to Try</option><option value="life-rules">Life Rules</option><option value="year-experiments">Year Experiment</option><option value="local-profiles">Local Profile</option></select></label>
             <button type="button" className="secondary-button button-with-icon" onClick={downloadCsv}><Download aria-hidden="true" />Download CSV</button>
           </section>
         </div>
@@ -140,7 +140,7 @@ export function You({ profile, experiment, theme, onThemeChange, onBack }: YouPr
         </section>
 
         <section className="danger-zone" aria-labelledby="delete-title">
-          <div><p className="step-label">Permanent action</p><h2 id="delete-title">Delete all local data</h2><p>This removes your Local Profile, Year Experiment, Daily Check-Ins, and app caches from this browser.</p></div>
+          <div><p className="step-label">Permanent action</p><h2 id="delete-title">Delete all local data</h2><p>This removes your Local Profile, Year Experiment, Daily Check-Ins, projects, ideas, life rules, and app caches from this browser.</p></div>
           {!showDelete && <button type="button" className="danger-button" onClick={() => setShowDelete(true)}><Trash2 aria-hidden="true" />Review deletion</button>}
           {showDelete && <div className="delete-confirm"><p><strong>Download a backup first.</strong> Deletion cannot be undone.</p><button type="button" className="secondary-button button-with-icon" onClick={downloadJsonBackup}><Download aria-hidden="true" />Download backup</button><label>Type <strong>DELETE MY DATA</strong> to confirm<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" /></label><div className="delete-actions"><button type="button" className="secondary-button" onClick={() => { setShowDelete(false); setConfirmation('') }}>Cancel</button><button type="button" className="danger-button" disabled={confirmation !== 'DELETE MY DATA' || isDeleting} onClick={confirmDelete}>{isDeleting ? 'Deleting...' : 'Delete everything'}</button></div></div>}
         </section>

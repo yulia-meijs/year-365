@@ -26,3 +26,51 @@ export interface DailyCheckIn {
   reflection?: string
   updatedAt: string
 }
+
+export const projectCategories = ['Creative', 'Learning', 'Health', 'Travel', 'Home', 'Career', 'Relationships', 'Personal', 'Other'] as const
+export type ProjectCategory = typeof projectCategories[number]
+export type ProjectStatus = 'idea' | 'active' | 'paused' | 'complete'
+
+export interface Project {
+  id: string
+  experimentId: YearExperiment['id']
+  name: string
+  category: ProjectCategory
+  description?: string
+  startDate?: PersonalDate
+  targetDate?: PersonalDate
+  status: ProjectStatus
+  notes?: string
+  investedMinutes: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProjectMilestone {
+  id: string
+  projectId: Project['id']
+  title: string
+  completed: boolean
+  completedAt?: string
+}
+
+export type InterestStatus = 'idea' | 'interested' | 'tried' | 'loved' | 'not-for-me'
+
+export interface Interest {
+  id: string
+  experimentId: YearExperiment['id']
+  name: string
+  category: ProjectCategory
+  status: InterestStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LifeRule {
+  id: string
+  experimentId: YearExperiment['id']
+  sentence: string
+  position: number
+  createdAt: string
+  updatedAt: string
+}

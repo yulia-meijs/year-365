@@ -196,6 +196,76 @@ test('shows recorded trend observations without counting unknown days', async ({
   expect(runtimeErrors).toEqual([])
 })
 
+test('explores creative projects and things to try without requiring deadlines', async ({ page }) => {
+  await page.goto('/')
+  const today = new Date()
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  await page.getByLabel('Start date').fill(localToday)
+  await page.getByRole('button', { name: 'Begin my year' }).click()
+  await page.getByRole('button', { name: 'Open projects' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Return to Sewing' })).toBeVisible()
+  await page.getByLabel('Return to Sewing status').selectOption('active')
+  await page.getByLabel('Minutes for Return to Sewing').fill('45')
+  await page.getByRole('article').filter({ hasText: 'Return to Sewing' }).getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('45 min')).toBeVisible()
+  await page.getByText('Find sewing machine').click()
+  await expect(page.getByText('1 of 8')).toBeVisible()
+
+  await page.getByRole('button', { name: 'New project' }).click()
+  await page.getByLabel('Project name').fill('Make a dress')
+  await page.getByLabel('Description').fill('Learn by making something I would enjoy wearing.')
+  await page.getByRole('button', { name: 'Create project' }).click()
+  await expect(page.getByRole('heading', { name: 'Make a dress' })).toBeVisible()
+
+  await page.getByRole('tab', { name: 'Things to try' }).click()
+  await page.getByPlaceholder('Pottery, photography, dancing...').fill('Pottery')
+  await page.getByRole('button', { name: 'Add idea' }).click()
+  await page.getByLabel('Pottery exploration state').selectOption('interested')
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Open projects' }).click()
+  await expect(page.getByRole('heading', { name: 'Make a dress' })).toBeVisible()
+  await expect(page.getByLabel('Return to Sewing status')).toHaveValue('active')
+  await page.getByRole('tab', { name: 'Things to try' }).click()
+  await expect(page.getByLabel('Pottery exploration state')).toHaveValue('interested')
+  await page.getByRole('button', { name: 'Remove Pottery' }).click()
+  await expect(page.getByRole('heading', { name: 'Pottery' })).not.toBeVisible()
+})
+
+test('keeps a personal chapter of up to ten life rules', async ({ page }) => {
+  await page.goto('/')
+  const today = new Date()
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  await page.getByLabel('Start date').fill(localToday)
+  await page.getByRole('button', { name: 'Begin my year' }).click()
+  await page.getByRole('button', { name: 'Open projects' }).click()
+  await page.getByRole('tab', { name: 'Life rules' }).click()
+
+  await page.getByLabel('New life rule').fill('Rest is part of the work.')
+  await page.getByRole('button', { name: 'Add rule' }).click()
+  await page.getByLabel('Life rule 1', { exact: true }).fill('Rest makes the work sustainable.')
+  await page.getByRole('button', { name: 'Save life rule 1' }).click()
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Open projects' }).click()
+  await page.getByRole('tab', { name: 'Life rules' }).click()
+  await expect(page.getByLabel('Life rule 1', { exact: true })).toHaveValue('Rest makes the work sustainable.')
+  await page.getByRole('button', { name: 'Remove life rule 1' }).click()
+
+  for (let number = 1; number <= 10; number += 1) {
+    await page.getByLabel('New life rule').fill(`Life rule number ${number}.`)
+    await page.getByRole('button', { name: 'Add rule' }).click()
+  }
+
+  await expect(page.getByText('10 of 10 sentences')).toBeVisible()
+  await expect(page.getByLabel('New life rule')).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Add rule' })).toBeDisabled()
+  await expect(page.getByLabel('Life rule 10', { exact: true })).toHaveValue('Life rule number 10.')
+  const hasHorizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+  expect(hasHorizontalOverflow).toBe(false)
+})
+
 test('exports, deletes, and restores all local data from You', async ({ page }) => {
   const runtimeErrors: string[] = []
   page.on('console', (message) => {
@@ -218,7 +288,7 @@ test('exports, deletes, and restores all local data from You', async ({ page }) 
   await expect(page.getByText('Everything is stored in this browser. No account, analytics, cloud sync, or data sharing.')).toBeVisible()
   await expect(page.getByText('Daily Check-Ins').locator('..').getByText('1')).toBeVisible()
 
-  await page.getByLabel('Choose JSON backup').setInputFiles({ name: 'newer.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: '365-my-year', version: 2 })) })
+  await page.getByLabel('Choose JSON backup').setInputFiles({ name: 'newer.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: '365-my-year', version: 4 })) })
   await expect(page.getByRole('alert')).toHaveText('This backup was created by a newer version of the app.')
   await expect(page.getByText('Daily Check-Ins').locator('..').getByText('1')).toBeVisible()
 
@@ -230,7 +300,7 @@ test('exports, deletes, and restores all local data from You', async ({ page }) 
   expect(jsonPath).not.toBeNull()
   const backupText = await readFile(jsonPath!, 'utf8')
   const downloadedBackup = JSON.parse(backupText)
-  expect(downloadedBackup).toMatchObject({ format: '365-my-year', version: 1 })
+  expect(downloadedBackup).toMatchObject({ format: '365-my-year', version: 3 })
   expect(downloadedBackup.data.dailyCheckIns).toHaveLength(1)
   expect(downloadedBackup.data.dailyCheckIns[0].energy).toBeUndefined()
 

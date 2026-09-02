@@ -5,6 +5,7 @@ import { createYearExperiment, db } from './data/database'
 import { CheckIn } from './CheckIn'
 import { Calendar } from './Calendar'
 import { RestoreControl, You } from './You'
+import { Projects } from './Projects'
 import { DEFAULT_START_DATE, experimentDay, experimentEndDate, experimentProgress, personalDateForInstant } from './domain/personal-day'
 import type { DailyCheckIn, LocalProfile, YearExperiment } from './domain/types'
 
@@ -14,7 +15,7 @@ interface ActiveExperiment {
 }
 
 type Theme = 'light' | 'dark'
-type View = 'today' | 'checkin' | 'calendar' | 'trends' | 'you'
+type View = 'today' | 'checkin' | 'calendar' | 'trends' | 'projects' | 'you'
 
 const navigation = [
   { view: 'today', label: 'Today', icon: House },
@@ -90,7 +91,7 @@ function Setup({ onCreated }: { onCreated: (active: ActiveExperiment) => void })
   )
 }
 
-function Today({ experiment, profile, theme, onToggleTheme, onOpenCheckIn, onOpenYou }: ActiveExperiment & { theme: Theme; onToggleTheme: () => void; onOpenCheckIn: () => void; onOpenYou: () => void }) {
+function Today({ experiment, profile, theme, onToggleTheme, onOpenCheckIn, onOpenProjects, onOpenYou }: ActiveExperiment & { theme: Theme; onToggleTheme: () => void; onOpenCheckIn: () => void; onOpenProjects: () => void; onOpenYou: () => void }) {
   const today = personalDateForInstant(new Date(), profile.timezone)
   const day = experimentDay(experiment.startDate, today)
   const progress = experimentProgress(experiment.startDate, today)
@@ -131,7 +132,7 @@ function Today({ experiment, profile, theme, onToggleTheme, onOpenCheckIn, onOpe
         <section className="signal-grid" aria-label="Today's overview">
           <article><span className="signal-index">01</span><h2>Body</h2><p>{checkIn?.sleepHours !== undefined ? `${checkIn.sleepHours} hours sleep · Energy ${checkIn.energy ?? 'not recorded'}` : 'No observations yet'}</p></article>
           <article><span className="signal-index">02</span><h2>Mind</h2><p>{checkIn?.mood !== undefined ? `Mood ${checkIn.mood}/10 · Stress ${checkIn.stress ?? 'not recorded'}/10` : 'No observations yet'}</p></article>
-          <article><span className="signal-index">03</span><h2>Life</h2><p>No activities yet</p></article>
+          <article><span className="signal-index">03</span><h2>Life</h2><p>Ideas, creative work, and things you want to explore.</p><button className="signal-link" type="button" onClick={onOpenProjects}>Open projects</button></article>
         </section>
 
         <section className="year-note">
@@ -179,11 +180,13 @@ export function App() {
     content = <Suspense fallback={<div className="loading">Opening your trends...</div>}><Trends experiment={activeExperiment.experiment} today={today} onBack={() => navigateTo('today')} /></Suspense>
   } else if (view === 'you') {
     content = <You profile={activeExperiment.profile} experiment={activeExperiment.experiment} theme={theme} onThemeChange={setTheme} onBack={() => navigateTo('today')} />
+  } else if (view === 'projects') {
+    content = <Projects experiment={activeExperiment.experiment} onBack={() => navigateTo('today')} />
   } else if (view === 'checkin') {
     const fromCalendar = selectedDate !== undefined
     content = <CheckInLoader active={activeExperiment} personalDate={selectedDate ?? today} backLabel={fromCalendar ? 'Calendar' : 'Today'} onBack={() => { setView(fromCalendar ? 'calendar' : 'today'); setSelectedDate(undefined) }} />
   } else {
-    content = <Today {...activeExperiment} theme={theme} onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} onOpenCheckIn={() => navigateTo('checkin')} onOpenYou={() => navigateTo('you')} />
+    content = <Today {...activeExperiment} theme={theme} onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} onOpenCheckIn={() => navigateTo('checkin')} onOpenProjects={() => navigateTo('projects')} onOpenYou={() => navigateTo('you')} />
   }
 
   return <>{content}<PrimaryNavigation activeView={view} onNavigate={navigateTo} /></>
