@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Check, Moon, Wine, Zap } from 'lucide-react'
+import { ArrowLeft, Check, Dumbbell, Moon, Wine, Zap } from 'lucide-react'
 import { dailyCheckInId, saveDailyCheckIn } from './data/database'
 import type { DailyCheckIn, PersonalDate, YearExperiment } from './domain/types'
 
@@ -12,7 +12,7 @@ interface CheckInProps {
   onComplete: () => void
 }
 
-type CheckInDraft = Pick<DailyCheckIn, 'alcoholFree' | 'sleepHours' | 'energy' | 'mood' | 'stress' | 'reflection'>
+type CheckInDraft = Pick<DailyCheckIn, 'alcoholFree' | 'sleepHours' | 'energy' | 'mood' | 'stress' | 'sport' | 'sportMinutes' | 'reflection'>
 
 const scaleFields = [
   { key: 'energy', label: 'Energy', low: 'Drained', high: 'Full of energy' },
@@ -27,6 +27,8 @@ function toDraft(checkIn: DailyCheckIn | null): CheckInDraft {
     energy: checkIn?.energy,
     mood: checkIn?.mood,
     stress: checkIn?.stress,
+    sport: checkIn?.sport ?? '',
+    sportMinutes: checkIn?.sportMinutes,
     reflection: checkIn?.reflection ?? '',
   }
 }
@@ -50,6 +52,7 @@ export function CheckIn({ experiment, personalDate, existing, backLabel = 'Today
       personalDate,
       status,
       ...draft,
+      sport: draft.sport?.trim() || undefined,
       reflection: draft.reflection?.trim() || undefined,
       updatedAt: new Date().toISOString(),
     })
@@ -65,6 +68,7 @@ export function CheckIn({ experiment, personalDate, existing, backLabel = 'Today
         personalDate,
         status: 'draft',
         ...draft,
+        sport: draft.sport?.trim() || undefined,
         reflection: draft.reflection?.trim() || undefined,
         updatedAt: new Date().toISOString(),
       }).then(() => setSaveState('saved'))
@@ -110,6 +114,14 @@ export function CheckIn({ experiment, personalDate, existing, backLabel = 'Today
             <span>Hours of sleep</span>
             <span><input type="number" inputMode="decimal" min="0" max="24" step="0.25" value={draft.sleepHours ?? ''} onChange={(event) => update('sleepHours', event.target.value === '' ? undefined : Number(event.target.value))} /> hours</span>
           </label>
+        </section>
+
+        <section className="form-section" aria-labelledby="sport-heading">
+          <div className="section-heading"><Dumbbell aria-hidden="true" /><div><p className="step-label">Optional movement</p><h2 id="sport-heading">What sport did you do?</h2></div></div>
+          <div className="sport-fields">
+            <label><span>Sport or activity</span><input type="text" value={draft.sport ?? ''} maxLength={100} placeholder="Swimming, running, yoga..." onChange={(event) => update('sport', event.target.value)} /></label>
+            <label><span>Minutes</span><span className="sport-minutes"><input type="number" inputMode="numeric" min="0" max="1440" step="1" value={draft.sportMinutes ?? ''} onChange={(event) => update('sportMinutes', event.target.value === '' ? undefined : Number(event.target.value))} /> min</span></label>
+          </div>
         </section>
 
         <section className="form-section scales-section" aria-labelledby="feelings-heading">

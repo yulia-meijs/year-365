@@ -58,6 +58,8 @@ function isCheckIn(value: unknown): value is DailyCheckIn {
     && isOptionalNumber(value.energy)
     && isOptionalNumber(value.mood)
     && isOptionalNumber(value.stress)
+    && (value.sport === undefined || isString(value.sport))
+    && isOptionalNumber(value.sportMinutes)
     && (value.reflection === undefined || isString(value.reflection))
     && isString(value.updatedAt)
 }
@@ -203,7 +205,7 @@ function csvRows(headers: string[], records: object[]): string {
 
 export function backupCsv(backup: RecoveryBackup, recordType: CsvRecordType): string {
   if (recordType === 'daily-check-ins') {
-    return csvRows(['id', 'experimentId', 'personalDate', 'status', 'alcoholFree', 'sleepHours', 'energy', 'mood', 'stress', 'reflection', 'updatedAt'], backup.data.dailyCheckIns)
+    return csvRows(['id', 'experimentId', 'personalDate', 'status', 'alcoholFree', 'sleepHours', 'energy', 'mood', 'stress', 'sport', 'sportMinutes', 'reflection', 'updatedAt'], backup.data.dailyCheckIns)
   }
   if (recordType === 'projects') {
     return csvRows(['id', 'experimentId', 'name', 'category', 'description', 'startDate', 'targetDate', 'status', 'notes', 'investedMinutes', 'createdAt', 'updatedAt'], backup.data.projects)

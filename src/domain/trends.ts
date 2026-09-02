@@ -2,7 +2,7 @@ import { addPersonalDays, experimentEndDate } from './personal-day'
 import type { DailyCheckIn, PersonalDate } from './types'
 
 export type TrendRange = 7 | 30 | 90 | 365
-export type NumericMetric = 'sleepHours' | 'energy' | 'mood' | 'stress'
+export type NumericMetric = 'sleepHours' | 'energy' | 'mood' | 'stress' | 'sportMinutes'
 
 export interface TrendPoint {
   date: PersonalDate

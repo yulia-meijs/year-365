@@ -12,7 +12,7 @@ interface CalendarProps {
   onOpenDay: (date: PersonalDate) => void
 }
 
-type CalendarFilter = 'all' | 'recorded' | 'partial' | 'alcohol-free' | 'alcohol-recorded'
+type CalendarFilter = 'all' | 'recorded' | 'partial' | 'alcohol-free' | 'alcohol-recorded' | 'sport'
 
 const statusLabels: Record<CalendarStatus, string> = {
   unknown: 'Not recorded',
@@ -27,6 +27,7 @@ const filters: { value: CalendarFilter; label: string }[] = [
   { value: 'partial', label: 'Partial' },
   { value: 'alcohol-free', label: 'Alcohol-free' },
   { value: 'alcohol-recorded', label: 'Alcohol recorded' },
+  { value: 'sport', label: 'Sport' },
 ]
 
 function monthKey(date: PersonalDate): string {
@@ -50,7 +51,8 @@ function groupByMonth(days: CalendarDay[]): Map<string, CalendarDay[]> {
 function dayLabel(day: CalendarDay): string {
   const date = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${day.date}T12:00:00Z`))
-  return `${date}, Day ${day.dayNumber}: ${day.isFuture ? 'Future day' : statusLabels[day.status]}`
+  const sport = day.sport ? `; sport: ${day.sport}${day.sportMinutes !== undefined ? `, ${day.sportMinutes} minutes` : ''}` : ''
+  return `${date}, Day ${day.dayNumber}: ${day.isFuture ? 'Future day' : statusLabels[day.status]}${sport}`
 }
 
 export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps) {
@@ -76,6 +78,7 @@ export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps
   function matchesFilter(day: CalendarDay): boolean {
     if (filter === 'all') return true
     if (filter === 'recorded') return day.status !== 'unknown'
+    if (filter === 'sport') return Boolean(day.sport || day.sportMinutes !== undefined)
     return day.status === filter
   }
 
@@ -94,6 +97,7 @@ export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps
 
         <div className="calendar-legend" aria-label="Calendar status legend">
           {Object.entries(statusLabels).map(([status, label]) => <span key={status}><i className={`status-dot ${status}`} />{label}</span>)}
+          <span><i className="status-bar sport" />Sport progress</span>
         </div>
 
         <div className="calendar-filters" role="group" aria-label="Filter calendar days">
@@ -114,13 +118,14 @@ export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps
                       type="button"
                       ref={day.date === today ? todayButtonRef : undefined}
                       key={day.date}
-                      className={`calendar-day ${day.status} ${day.date === today ? 'today' : ''} ${!matchesFilter(day) ? 'filtered' : ''}`}
+                      className={`calendar-day ${day.status} ${day.sport || day.sportMinutes !== undefined ? 'has-sport' : ''} ${day.date === today ? 'today' : ''} ${!matchesFilter(day) ? 'filtered' : ''}`}
                       aria-label={dayLabel(day)}
                       disabled={day.isFuture}
                       onClick={() => onOpenDay(day.date)}
                     >
                       <span>{Number(day.date.slice(8))}</span>
                       <i aria-hidden="true" />
+                      {(day.sport || day.sportMinutes !== undefined) && <b className="sport-progress" aria-hidden="true" style={{ width: `${day.sportMinutes === undefined ? 18 : Math.min(100, Math.max(8, day.sportMinutes / 60 * 100))}%` }} />}
                     </button>
                   ))}
                 </div>

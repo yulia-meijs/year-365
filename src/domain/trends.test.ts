@@ -31,6 +31,11 @@ describe('trend model', () => {
     ], 'energy')
     expect(points.map((point) => point.value)).toEqual([6, null, null, 8])
     expect(summarizeTrend(points)).toEqual({ count: 2, average: 7, latest: 8, minimum: 6, maximum: 8 })
+
+    const sportPoints = numericTrend('2026-08-30', '2026-09-02', 7, [
+      checkIn('2026-08-31', { sport: 'Cycling', sportMinutes: 35 }),
+    ], 'sportMinutes')
+    expect(sportPoints.map((point) => point.value)).toEqual([null, 35, null, null])
   })
 
   it('distinguishes unknown, alcohol-free, and alcohol-recorded observations', () => {

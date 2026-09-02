@@ -21,9 +21,9 @@ describe('calendar model', () => {
   })
 
   it('creates all 365 experiment days and marks only later dates as future', () => {
-    const days = buildCalendarDays('2026-08-30', '2026-08-31', [])
+    const days = buildCalendarDays('2026-08-30', '2026-08-31', [checkIn({ sport: 'Swimming', sportMinutes: 45 })])
     expect(days).toHaveLength(365)
-    expect(days[0]).toMatchObject({ date: '2026-08-30', dayNumber: 1, isFuture: false })
+    expect(days[0]).toMatchObject({ date: '2026-08-30', dayNumber: 1, sport: 'Swimming', sportMinutes: 45, isFuture: false })
     expect(days[1]).toMatchObject({ date: '2026-08-31', dayNumber: 2, isFuture: false })
     expect(days[2].isFuture).toBe(true)
     expect(days[364].date).toBe('2027-08-29')

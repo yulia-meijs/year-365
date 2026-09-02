@@ -85,6 +85,8 @@ test('restores a partial check-in and completes the default measures', async ({ 
 
   await page.getByRole('button', { name: 'Yes', exact: true }).click()
   await page.getByLabel('Hours of sleep').fill('7.5')
+  await page.getByLabel('Sport or activity').fill('Swimming')
+  await page.getByLabel('Minutes').fill('40')
   await expect(page.getByText('Saving...')).toBeVisible()
   await expect(page.getByText('Saved locally')).toBeVisible()
 
@@ -92,6 +94,8 @@ test('restores a partial check-in and completes the default measures', async ({ 
   await page.getByRole('button', { name: 'Continue check-in' }).click()
   await expect(page.getByRole('button', { name: 'Yes', exact: true })).toHaveClass(/selected/)
   await expect(page.getByLabel('Hours of sleep')).toHaveValue('7.5')
+  await expect(page.getByLabel('Sport or activity')).toHaveValue('Swimming')
+  await expect(page.getByLabel('Minutes')).toHaveValue('40')
   await expect(page.getByRole('button', { name: 'Complete check-in' })).toBeDisabled()
 
   await page.getByRole('button', { name: 'Energy 7 out of 10' }).click()
@@ -102,7 +106,17 @@ test('restores a partial check-in and completes the default measures', async ({ 
   await page.getByRole('button', { name: 'Complete check-in' }).click()
 
   await expect(page.getByText('7.5 hours sleep · Energy 7')).toBeVisible()
+  await expect(page.getByText('Swimming · 40 min')).toBeVisible()
   await expect(page.getByText('Mood 8/10 · Stress 3/10')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Calendar', exact: true }).click()
+  await page.getByRole('button', { name: 'Sport', exact: true }).click()
+  const sportDay = page.getByRole('button', { name: /sport: Swimming, 40 minutes/ })
+  await expect(sportDay).toHaveClass(/has-sport/)
+  await expect(sportDay.locator('.sport-progress')).toHaveCSS('background-color', 'rgb(15, 138, 104)')
+
+  await page.getByRole('button', { name: 'Trends', exact: true }).click()
+  await expect(page.getByRole('img', { name: /^Sport\. 1 recorded observation/ })).toBeVisible()
   expect(runtimeErrors).toEqual([])
 })
 

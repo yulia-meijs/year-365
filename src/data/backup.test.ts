@@ -9,6 +9,7 @@ const backup: RecoveryBackup = {
     experiments: [{ id: 'primary', profileId: 'local', startDate: '2026-08-30', createdAt: '2026-08-30T12:00:00.000Z' }],
     dailyCheckIns: [{
       id: 'primary:2026-08-30', experimentId: 'primary', personalDate: '2026-08-30', status: 'draft',
+      sport: 'Swimming', sportMinutes: 45,
       reflection: 'Quiet, reflective\nday', updatedAt: '2026-08-30T20:00:00.000Z',
     }],
     projects: [{ id: 'project:sewing', experimentId: 'primary', name: 'Return to Sewing', category: 'Creative', status: 'active', investedMinutes: 45, createdAt: '2026-08-30T12:00:00.000Z', updatedAt: '2026-09-02T12:00:00.000Z' }],
@@ -46,7 +47,7 @@ describe('backup format', () => {
   it('exports record-specific CSV with escaped text and blank unknown values', () => {
     const csv = backupCsv(backup, 'daily-check-ins')
     expect(csv).toContain('personalDate,status,alcoholFree,sleepHours')
-    expect(csv).toContain('draft,,,,,,"Quiet, reflective\nday"')
+    expect(csv).toContain('draft,,,,,,Swimming,45,"Quiet, reflective\nday"')
     expect(backupCsv(backup, 'projects')).toContain('Return to Sewing,Creative')
     expect(backupCsv(backup, 'life-rules')).toContain('Rest is part of the work.,1')
   })

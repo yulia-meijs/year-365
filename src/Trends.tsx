@@ -34,11 +34,11 @@ function summaryText(points: TrendPoint[], unit: string): string {
   return `${summary.count} recorded ${summary.count === 1 ? 'observation' : 'observations'}. Average ${average}${unit}; latest ${summary.latest}${unit}; range ${summary.minimum} to ${summary.maximum}${unit}. Unknown days are excluded.`
 }
 
-function TrendChart({ title, points, unit, domain = [0, 10] }: { title: string; points: TrendPoint[]; unit: string; domain?: [number, number] }) {
+function TrendChart({ title, points, unit, domain = [0, 10], color = 'var(--cp-accent)', className = '' }: { title: string; points: TrendPoint[]; unit: string; domain?: [number, number]; color?: string; className?: string }) {
   const summary = summarizeTrend(points)
   const text = summaryText(points, unit)
   return (
-    <article className="trend-chart">
+    <article className={`trend-chart ${className}`}>
       <div className="trend-chart-heading"><div><p className="step-label">{summary.count} recorded</p><h3>{title}</h3></div>{summary.average !== undefined && <strong>{Number(summary.average.toFixed(1))}<small>{unit} avg</small></strong>}</div>
       <p className="trend-summary">{text}</p>
       {summary.count === 0 ? <div className="trend-empty">Your chart will take shape as observations are recorded.</div> : (
@@ -49,7 +49,7 @@ function TrendChart({ title, points, unit, domain = [0, 10] }: { title: string; 
               <XAxis dataKey="date" tickFormatter={shortDate} minTickGap={32} stroke="var(--cp-text-muted)" tickLine={false} axisLine={false} />
               <YAxis domain={domain} width={34} stroke="var(--cp-text-muted)" tickLine={false} axisLine={false} />
               <Tooltip labelFormatter={(label) => shortDate(String(label))} formatter={(value) => [`${value}${unit}`, title]} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: 6 }} />
-              <Line type="linear" dataKey="value" stroke="var(--cp-accent)" strokeWidth={2} connectNulls={false} isAnimationActive={false} dot={{ r: 3, fill: 'var(--cp-surface)', strokeWidth: 2 }} activeDot={{ r: 5 }} />
+              <Line type="linear" dataKey="value" stroke={color} strokeWidth={2} connectNulls={false} isAnimationActive={false} dot={{ r: 3, fill: 'var(--cp-surface)', stroke: color, strokeWidth: 2 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -80,7 +80,9 @@ export function Trends({ experiment, today, onBack }: TrendsProps) {
   const [range, setRange] = useState<TrendRange>(30)
   const [view, setView] = useState<TrendView>('physical')
   const checkIns = useLiveQuery(() => db.dailyCheckIns.where('experimentId').equals(experiment.id).toArray(), [experiment.id]) ?? []
-  const trend = (metric: 'sleepHours' | 'energy' | 'mood' | 'stress') => numericTrend(experiment.startDate, today, range, checkIns, metric)
+  const trend = (metric: 'sleepHours' | 'energy' | 'mood' | 'stress' | 'sportMinutes') => numericTrend(experiment.startDate, today, range, checkIns, metric)
+  const sportPoints = trend('sportMinutes')
+  const sportMaximum = Math.max(60, ...sportPoints.flatMap((point) => point.value === null ? [] : [point.value]))
 
   return (
     <div className="trends-page">
@@ -93,7 +95,7 @@ export function Trends({ experiment, today, onBack }: TrendsProps) {
         </div>
         <p className="range-caption">Showing up to {range} days through {shortDate(today)}.</p>
         <section className="trend-grid" role="tabpanel">
-          {view === 'physical' && <><TrendChart title="Sleep" points={trend('sleepHours')} unit="h" domain={[0, 14]} /><TrendChart title="Energy" points={trend('energy')} unit="/10" /></>}
+          {view === 'physical' && <><TrendChart title="Sleep" points={trend('sleepHours')} unit="h" domain={[0, 14]} /><TrendChart title="Energy" points={trend('energy')} unit="/10" /><TrendChart title="Sport" points={sportPoints} unit=" min" domain={[0, sportMaximum]} color="var(--cp-sport)" className="sport-trend" /></>}
           {view === 'mental' && <><TrendChart title="Mood" points={trend('mood')} unit="/10" /><TrendChart title="Stress" points={trend('stress')} unit="/10" /></>}
           {view === 'lifestyle' && <AlcoholChart points={alcoholTrend(experiment.startDate, today, range, checkIns)} />}
           {view === 'life' && <div className="life-empty"><Footprints aria-hidden="true" /><p className="step-label">No activity observations yet</p><h3>Your life trends will grow here.</h3><p>Creative, social, outdoor, learning, and meaningful activity time will appear when activity tracking is available.</p></div>}

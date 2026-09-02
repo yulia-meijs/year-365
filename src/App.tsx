@@ -130,7 +130,7 @@ function Today({ experiment, profile, theme, onToggleTheme, onOpenCheckIn, onOpe
         </section>
 
         <section className="signal-grid" aria-label="Today's overview">
-          <article><span className="signal-index">01</span><h2>Body</h2><p>{checkIn?.sleepHours !== undefined ? `${checkIn.sleepHours} hours sleep · Energy ${checkIn.energy ?? 'not recorded'}` : 'No observations yet'}</p></article>
+          <article><span className="signal-index">01</span><h2>Body</h2><p>{checkIn?.sleepHours !== undefined ? `${checkIn.sleepHours} hours sleep · Energy ${checkIn.energy ?? 'not recorded'}` : 'No observations yet'}</p>{checkIn?.sport && <p className="sport-summary">{checkIn.sport}{checkIn.sportMinutes !== undefined ? ` · ${checkIn.sportMinutes} min` : ''}</p>}</article>
           <article><span className="signal-index">02</span><h2>Mind</h2><p>{checkIn?.mood !== undefined ? `Mood ${checkIn.mood}/10 · Stress ${checkIn.stress ?? 'not recorded'}/10` : 'No observations yet'}</p></article>
           <article><span className="signal-index">03</span><h2>Life</h2><p>Ideas, creative work, and things you want to explore.</p><button className="signal-link" type="button" onClick={onOpenProjects}>Open projects</button></article>
         </section>

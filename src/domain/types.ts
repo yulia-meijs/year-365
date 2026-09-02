@@ -23,6 +23,8 @@ export interface DailyCheckIn {
   energy?: number
   mood?: number
   stress?: number
+  sport?: string
+  sportMinutes?: number
   reflection?: string
   updatedAt: string
 }

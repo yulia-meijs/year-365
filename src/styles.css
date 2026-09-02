@@ -16,6 +16,8 @@
   --cp-accent-soft: rgba(177, 31, 75, 0.08);
   --cp-accent-fg: #ffffff;
   --cp-success: #16a34a;
+  --cp-sport: #0f8a68;
+  --cp-sport-soft: rgba(15, 138, 104, 0.14);
   --cp-danger: #dc2626;
   --cp-warning: #f59e0b;
   --cp-link: #0078d4;
@@ -137,6 +139,12 @@ button { min-height: 44px; }
 .number-field { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--cp-text-muted); }
 .number-field > span:last-child { display: flex; align-items: center; gap: .65rem; color: var(--cp-text); }
 .number-field input { width: 105px; min-height: 52px; padding: .5rem .75rem; border: 1px solid var(--cp-border-strong); border-radius: .625rem; background: var(--cp-surface); color: var(--cp-text); font-size: 1.25rem; }
+.sport-fields { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 1rem; }
+.sport-fields label { display: grid; gap: .5rem; color: var(--cp-text-muted); font-size: .88rem; }
+.sport-fields input { width: 100%; min-height: 52px; padding: .65rem .8rem; border: 1px solid var(--cp-border-strong); border-radius: .625rem; background: var(--cp-surface); color: var(--cp-text); font-size: 1rem; }
+.sport-minutes { display: flex; align-items: center; gap: .55rem; color: var(--cp-text); }
+.sport-minutes input { min-width: 0; }
+.sport-summary { margin-top: .7rem !important; color: var(--cp-sport) !important; font-weight: 700; }
 .scale-field { min-width: 0; margin: 0; padding: 1.4rem 0; border: 0; }
 .scale-field + .scale-field { border-top: 1px solid var(--cp-border); }
 .scale-field legend { margin-bottom: .8rem; font-weight: 700; }
@@ -171,6 +179,8 @@ button { min-height: 44px; }
 .status-dot.partial { border-radius: 0; background: var(--cp-warning); border-color: var(--cp-warning); transform: rotate(45deg); }
 .status-dot.alcohol-free { background: var(--cp-success); border-color: var(--cp-success); }
 .status-dot.alcohol-recorded { background: var(--cp-danger); border-color: var(--cp-danger); }
+.status-bar { width: 18px; height: 5px; display: inline-block; border-radius: 3px; }
+.status-bar.sport { background: var(--cp-sport); }
 .calendar-filters { padding: 1.25rem 0 2rem; display: flex; gap: .5rem; overflow-x: auto; }
 .calendar-filters button { flex: 0 0 auto; padding: .55rem .9rem; border: 1px solid var(--cp-border); border-radius: .5rem; background: var(--cp-surface); color: var(--cp-text-muted); cursor: pointer; }
 .calendar-filters button.selected { border-color: var(--cp-accent); background: var(--cp-accent-soft); color: var(--cp-accent); font-weight: 700; }
@@ -182,6 +192,8 @@ button { min-height: 44px; }
 .weekday-row span { padding: .25rem 0; }
 .calendar-day { position: relative; min-width: 0; min-height: 44px; padding: 0; border: 1px solid var(--cp-border); border-radius: .35rem; background: var(--cp-bg-elevated); color: var(--cp-text); cursor: pointer; font-size: .82rem; }
 .calendar-day > i { position: absolute; left: 50%; bottom: 4px; width: 5px; height: 5px; transform: translateX(-50%); border: 1px solid var(--cp-border-strong); border-radius: 50%; }
+.calendar-day.has-sport > i { bottom: 8px; }
+.calendar-day .sport-progress { position: absolute; left: 0; bottom: 0; max-width: 100%; height: 4px; border-radius: 0 3px 3px 3px; background: var(--cp-sport); }
 .calendar-day.partial > i { border: 0; border-radius: 0; background: var(--cp-warning); transform: translateX(-50%) rotate(45deg); }
 .calendar-day.alcohol-free > i { border-color: var(--cp-success); background: var(--cp-success); }
 .calendar-day.alcohol-recorded > i { border-color: var(--cp-danger); background: var(--cp-danger); }
@@ -211,6 +223,8 @@ button { min-height: 44px; }
 .trend-chart-heading { min-height: 62px; display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
 .trend-chart-heading h3 { margin: .25rem 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-weight: 400; letter-spacing: 0; }
 .trend-chart-heading > strong { display: grid; text-align: right; color: var(--cp-accent); font-size: 1.7rem; font-weight: 500; }
+.sport-trend { border-top-color: var(--cp-sport); background: linear-gradient(180deg, var(--cp-sport-soft), transparent 35%), var(--cp-surface); }
+.sport-trend .trend-chart-heading > strong { color: var(--cp-sport); }
 .trend-chart-heading small { color: var(--cp-text-muted); font-size: .7rem; font-weight: 500; }
 .trend-summary { min-height: 58px; margin: 1rem 0; color: var(--cp-text-muted); font-size: .84rem; line-height: 1.5; }
 .chart-frame { width: 100%; height: 260px; overflow: hidden; }
@@ -359,6 +373,7 @@ button { min-height: 44px; }
   .checkin-header { grid-template-columns: 44px 1fr; }
   .save-state { grid-column: 2; margin-top: -.8rem; }
   .scale-options { grid-template-columns: repeat(5, 1fr); }
+  .sport-fields { grid-template-columns: 1fr; }
   .complete-bar { align-items: stretch; flex-direction: column; }
   .complete-bar p { display: none; }
   .complete-bar .primary-button { justify-content: center; width: 100%; }
