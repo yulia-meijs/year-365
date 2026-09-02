@@ -1,0 +1,34 @@
+import { addPersonalDays, EXPERIMENT_LENGTH_DAYS } from './personal-day'
+import type { DailyCheckIn, PersonalDate } from './types'
+
+export type CalendarStatus = 'unknown' | 'partial' | 'alcohol-free' | 'alcohol-recorded'
+
+export interface CalendarDay {
+  date: PersonalDate
+  dayNumber: number
+  status: CalendarStatus
+  isFuture: boolean
+}
+
+export function calendarStatus(checkIn?: DailyCheckIn): CalendarStatus {
+  if (!checkIn || checkIn.alcoholFree === undefined) return checkIn ? 'partial' : 'unknown'
+  if (checkIn.status === 'draft') return 'partial'
+  return checkIn.alcoholFree ? 'alcohol-free' : 'alcohol-recorded'
+}
+
+export function buildCalendarDays(
+  startDate: PersonalDate,
+  today: PersonalDate,
+  checkIns: DailyCheckIn[],
+): CalendarDay[] {
+  const checkInsByDate = new Map(checkIns.map((checkIn) => [checkIn.personalDate, checkIn]))
+  return Array.from({ length: EXPERIMENT_LENGTH_DAYS }, (_, index) => {
+    const date = addPersonalDays(startDate, index)
+    return {
+      date,
+      dayNumber: index + 1,
+      status: calendarStatus(checkInsByDate.get(date)),
+      isFuture: date > today,
+    }
+  })
+}

@@ -1,0 +1,118 @@
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { CalendarDays, ChevronLeft } from 'lucide-react'
+import { db } from './data/database'
+import { buildCalendarDays, type CalendarDay, type CalendarStatus } from './domain/calendar'
+import type { PersonalDate, YearExperiment } from './domain/types'
+
+interface CalendarProps {
+  experiment: YearExperiment
+  today: PersonalDate
+  onBack: () => void
+  onOpenDay: (date: PersonalDate) => void
+}
+
+type CalendarFilter = 'all' | 'recorded' | 'partial' | 'alcohol-free' | 'alcohol-recorded'
+
+const statusLabels: Record<CalendarStatus, string> = {
+  unknown: 'Not recorded',
+  partial: 'Partial check-in',
+  'alcohol-free': 'Alcohol-free',
+  'alcohol-recorded': 'Alcohol recorded',
+}
+
+const filters: { value: CalendarFilter; label: string }[] = [
+  { value: 'all', label: 'All days' },
+  { value: 'recorded', label: 'Recorded' },
+  { value: 'partial', label: 'Partial' },
+  { value: 'alcohol-free', label: 'Alcohol-free' },
+  { value: 'alcohol-recorded', label: 'Alcohol recorded' },
+]
+
+function monthKey(date: PersonalDate): string {
+  return date.slice(0, 7)
+}
+
+function monthName(key: string): string {
+  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${key}-01T12:00:00Z`))
+}
+
+function groupByMonth(days: CalendarDay[]): Map<string, CalendarDay[]> {
+  const months = new Map<string, CalendarDay[]>()
+  for (const day of days) {
+    const key = monthKey(day.date)
+    months.set(key, [...(months.get(key) ?? []), day])
+  }
+  return months
+}
+
+function dayLabel(day: CalendarDay): string {
+  const date = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${day.date}T12:00:00Z`))
+  return `${date}, Day ${day.dayNumber}: ${day.isFuture ? 'Future day' : statusLabels[day.status]}`
+}
+
+export function Calendar({ experiment, today, onBack, onOpenDay }: CalendarProps) {
+  const [filter, setFilter] = useState<CalendarFilter>('all')
+  const checkIns = useLiveQuery(() => db.dailyCheckIns.where('experimentId').equals(experiment.id).toArray(), [experiment.id])
+  const days = buildCalendarDays(experiment.startDate, today, checkIns ?? [])
+  const months = groupByMonth(days)
+
+  function matchesFilter(day: CalendarDay): boolean {
+    if (filter === 'all') return true
+    if (filter === 'recorded') return day.status !== 'unknown'
+    return day.status === filter
+  }
+
+  return (
+    <div className="calendar-page">
+      <header className="calendar-header">
+        <button className="icon-button" onClick={onBack} aria-label="Back to Today"><ChevronLeft aria-hidden="true" /></button>
+        <div><p className="eyebrow">Your Year Experiment</p><h1>Calendar</h1></div>
+      </header>
+      <main className="calendar-content">
+        <section className="calendar-intro" aria-labelledby="calendar-title">
+          <div><CalendarDays aria-hidden="true" /><p className="step-label">365 days, held together</p><h2 id="calendar-title">A record, not a scorecard.</h2></div>
+          <p>Observed days, unfinished notes, and open space all belong to the year.</p>
+        </section>
+
+        <div className="calendar-legend" aria-label="Calendar status legend">
+          {Object.entries(statusLabels).map(([status, label]) => <span key={status}><i className={`status-dot ${status}`} />{label}</span>)}
+        </div>
+
+        <div className="calendar-filters" role="group" aria-label="Filter calendar days">
+          {filters.map(({ value, label }) => <button type="button" key={value} className={filter === value ? 'selected' : ''} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}
+        </div>
+
+        <div className="months-grid">
+          {Array.from(months, ([key, monthDays]) => {
+            const firstWeekday = new Date(`${monthDays[0].date}T12:00:00Z`).getUTCDay()
+            return (
+              <section className="calendar-month" key={key} aria-labelledby={`month-${key}`}>
+                <h3 id={`month-${key}`}>{monthName(key)}</h3>
+                <div className="weekday-row" aria-hidden="true">{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
+                <div className="month-days">
+                  {Array.from({ length: firstWeekday }, (_, index) => <span className="day-spacer" key={`spacer-${index}`} />)}
+                  {monthDays.map((day) => (
+                    <button
+                      type="button"
+                      key={day.date}
+                      className={`calendar-day ${day.status} ${day.date === today ? 'today' : ''} ${!matchesFilter(day) ? 'filtered' : ''}`}
+                      aria-label={dayLabel(day)}
+                      disabled={day.isFuture}
+                      onClick={() => onOpenDay(day.date)}
+                    >
+                      <span>{Number(day.date.slice(8))}</span>
+                      <i aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )
+          })}
+        </div>
+      </main>
+    </div>
+  )
+}

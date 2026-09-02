@@ -1,0 +1,9 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.vite/
+.agents/
+.claude/
+skills-lock.json
